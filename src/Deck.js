@@ -83,7 +83,7 @@ class Deck extends Component {
     }
 
     renderCards() {
-        if(this.state.index > this.props.data.length) {
+        if(this.state.index >= this.props.data.length) {
             return this.props.renderNoMoreCards();
         }
 
