@@ -3,7 +3,9 @@ import {
     View, 
     Animated,
     PanResponder,
-    Dimensions
+    Dimensions,
+    LayoutAnimation,
+    UIManager
 } from 'react-native';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -43,6 +45,18 @@ class Deck extends Component {
         });
 
         this.state = { panResponder, position, index: 0 };
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.data !== this.props.data) {
+            this.setState({ index: 0 });
+        }
+    }
+
+    componentWillUpdate() {
+        UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
+        LayoutAnimation.spring(); // the next time it rerenders this component, it needs to animate any changes made to this component itself.
+        // for example, after swiping, the cards pop up, this will animate that instead of just moving the y, which will be smoother
     }
 
     forceSwipe(direction) {
@@ -95,15 +109,22 @@ class Deck extends Component {
                     <Animated.View
                         key={item.id}
                         //style={this.state.position.getLayout()}  
-                        style={this.getCardStyle()}  
+                        style={[this.getCardStyle(), styles.cardStyle]}  
                         {...this.state.panResponder.panHandlers}
                     >
                         {this.props.renderCard(item)}
                     </Animated.View>
                 );
             }
-           return this.props.renderCard(item); 
-        });
+           return (
+                <Animated.View 
+                    key={item.id} 
+                    style={[styles.cardStyle, { top: 10 * (i - this.state.index) }]}
+                >
+                    {this.props.renderCard(item)}
+                </Animated.View>
+           );
+        }).reverse();
     }
     // This is what it takes to attach panResponder to a React Object
     render() {
@@ -112,6 +133,13 @@ class Deck extends Component {
                 {this.renderCards()}
             </View>
         );
+    }
+}
+
+const styles = {
+    cardStyle: {
+        position: 'absolute',
+        width: SCREEN_WIDTH
     }
 }
 
